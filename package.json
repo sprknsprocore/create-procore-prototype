@@ -1,0 +1,11 @@
+{
+  "name": "create-procore-prototype",
+  "version": "1.0.0",
+  "description": "Install the Procore Prototype Kit skill for Cursor",
+  "bin": "./index.mjs",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "UNLICENSED"
+}
