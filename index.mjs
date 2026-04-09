@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
-import { get } from "https";
-import { existsSync, mkdirSync, writeFileSync } from "fs";
-import { join } from "path";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
+import { join, dirname } from "path";
 import { homedir } from "os";
+import { fileURLToPath } from "url";
 
-const REPO_RAW =
-  "https://raw.githubusercontent.com/sprknsprocore/prototype-kit/main";
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const BUNDLED_SKILL = join(__dirname, "SKILL.md");
 const SKILL_DIR = join(homedir(), ".cursor", "skills", "procore-prototype");
 const SKILL_FILE = join(SKILL_DIR, "SKILL.md");
 
@@ -22,23 +22,6 @@ const step = (msg) => console.log(`\n${ORANGE}▸${RESET} ${BOLD}${msg}${RESET}`
 const ok = (msg) => console.log(`  ${GREEN}✓${RESET} ${msg}`);
 const warn = (msg) => console.log(`  ${RED}✗${RESET} ${msg}`);
 const info = (msg) => console.log(`  ${DIM}${msg}${RESET}`);
-
-function fetch(url) {
-  return new Promise((resolve, reject) => {
-    get(url, (res) => {
-      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-        return fetch(res.headers.location).then(resolve, reject);
-      }
-      if (res.statusCode !== 200) {
-        return reject(new Error(`HTTP ${res.statusCode}`));
-      }
-      const chunks = [];
-      res.on("data", (chunk) => chunks.push(chunk));
-      res.on("end", () => resolve(Buffer.concat(chunks).toString("utf-8")));
-      res.on("error", reject);
-    }).on("error", reject);
-  });
-}
 
 const isUpdate = existsSync(SKILL_FILE);
 
@@ -64,14 +47,12 @@ step(isUpdate ? "Updating the Procore Prototype skill" : "Installing the Procore
 
 try {
   mkdirSync(SKILL_DIR, { recursive: true });
-  const content = await fetch(
-    `${REPO_RAW}/.cursor/skills/procore-prototype/SKILL.md`
-  );
+  const content = readFileSync(BUNDLED_SKILL, "utf-8");
   writeFileSync(SKILL_FILE, content, "utf-8");
-  ok("Downloaded latest skill from GitHub");
-} catch {
-  warn("Could not download the skill file");
-  info("Check your internet connection and try again");
+  ok("Skill installed");
+} catch (err) {
+  warn("Could not install the skill file");
+  info(err.message);
   process.exit(1);
 }
 
